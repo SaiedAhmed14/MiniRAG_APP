@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     OPENAI_KEY:str
     FILE_ALLOWED_TYPES:list
     FILE_MAX_SIZE:int
+    FILE_CHUNK_SIZE:int
 
     class config :
         env_file=".env"
