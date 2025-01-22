@@ -23,7 +23,7 @@ async def upload_data(project_id:str,file:UploadFile,app_settings:Settings=Depen
     file_path=os.path.join(project_dir_path,file.filename)
 
     async with aiofiles.open(file_path, mode='wb') as f:
-        while chunk:=file.read(app_settings.FILE_CHUNK_SIZE):
+        while chunk:=await file.read(app_settings.FILE_CHUNK_SIZE):
             await f.write(chunk)
     return JSONResponse(
         content={"signal":ResponseSignals.FILE_UPLOADED_SUCCESS.value})
