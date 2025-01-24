@@ -7,7 +7,7 @@ import aiofiles
 from models import ResponseSignals
 import logging
 
-logger=logging.grtLogger("uvicorn.errror")
+logger=logging.getLogger("uvicorn.errror")
 
 data_router=APIRouter(
     prefix="/api/v07/data"
@@ -22,17 +22,32 @@ async def upload_data(project_id:str,file:UploadFile,app_settings:Settings=Depen
     if not is_valid:
         return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
-        content={"message": result_signal})
+        content={
+            "message": result_signal
+                }
+        )
     project_dir_path=ProjectController().get_project_path(project_id=project_id)
-    file_path=data_controller.generate_unique_filepath(orig_file_name=file.filename,project_id=project_id)
+    file_path,file_id=data_controller.generate_unique_filepath(orig_file_name=file.filename,project_id=project_id)
     try:
         async with aiofiles.open(file_path, mode='wb') as f:
             while chunk:=await file.read(app_settings.FILE_CHUNK_SIZE):
                 await f.write(chunk)
     except Exception as e:
+        
+        # Log error
         logger.error(f"Error while uploading file: {e}")            
+        
+        # Return error response
         return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
-            content={"signal":ResponseSignals.FILE_UPLOADED_FAILED.value}) 
-    
-    return JSONResponse(content={"signal":ResponseSignals.FILE_UPLOADED_SUCCESS.value})
+            content={
+                "signal":ResponseSignals.FILE_UPLOADED_FAILED.value
+                    }
+                ) 
+    #RETURN SUCCESS RESPONSE
+    return JSONResponse(
+        content={
+            "signal":ResponseSignals.FILE_UPLOADED_SUCCESS.value,
+            "file_id":file_id
+            }
+        )
